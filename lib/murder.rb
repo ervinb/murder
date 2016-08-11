@@ -25,7 +25,6 @@ Capistrano::Configuration.instance(:must_exist).load do
   set :default_tag, ''
   set :default_seeder_files_path, ''
   set :default_destination_path, ''
-  set :default_temp_path, '/tmp'
 
   # default remote dist path in app shared directory
   set(:remote_murder_path) { "#{shared_path}/murder" }
@@ -39,7 +38,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     roles.reject{|k,v| excluded_roles.include? k }.values.map{|r| r.servers }.flatten.uniq.reject{|s| s.options[:no_release] }
   end
 
-  role(:tracker) { roles[:peer].servers.first }
-  role(:seeder) { roles[:peer].servers.first }
+  ## Remove both
+  #role(:tracker) { roles[:peer].servers.first }
+  #role(:seeder) { roles[:peer].servers.first }
 
 end
