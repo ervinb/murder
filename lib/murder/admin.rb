@@ -20,7 +20,10 @@ namespace :murder do
   DESC
   task :distribute_files, :roles => [:tracker, :seeder, :peer] do
     dist_path = File.expand_path('../../../dist', __FILE__)
+    bt_config_path = "/home/#{user}/.BitTornado/config.downloadheadless.ini"
 
+    run "mkdir -p $(dirname #{bt_config_path})"
+    run "touch #{bt_config_path}"
     run "mkdir -p #{remote_murder_path}/"
     run "[ $(find '#{remote_murder_path}/'* | wc -l ) -lt 1000 ] && rm -rf '#{remote_murder_path}/'* || ( echo 'Cowardly refusing to remove files! Check the remote_murder_path.' ; exit 1 )"
 
