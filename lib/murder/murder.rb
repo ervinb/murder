@@ -54,7 +54,7 @@ namespace :murder do
   DESC
   task :start_seeding, :roles => :seeder do
     require_tag
-    run "screen -dms 'seeder-#{tag}' python #{remote_murder_path}/murder_client.py seeder '#{filename}.torrent' '#{filename}' $(ip r | grep -o -E 'eth0 .+ src [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $7}')"
+    run "screen -dmS 'seeder-#{tag}' python #{remote_murder_path}/murder_client.py seeder '#{filename}.torrent' '#{filename}' $(ip r | grep -o -E 'eth0 .+ src [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $7}')"
   end
 
   desc <<-DESC
