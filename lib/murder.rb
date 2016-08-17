@@ -38,8 +38,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     roles.reject{|k,v| excluded_roles.include? k }.values.map{|r| r.servers }.flatten.uniq.reject{|s| s.options[:no_release] }
   end
 
-  ## Remove both
-  #role(:tracker) { roles[:peer].servers.first }
-  #role(:seeder) { roles[:peer].servers.first }
+  role(:tracker) { roles[:tracker].servers.first }
+  role(:seeder) { roles[:seeder].servers.first }
 
 end
