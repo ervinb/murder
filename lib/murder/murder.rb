@@ -20,20 +20,21 @@ namespace :murder do
   DESC
   task :create_torrent, :roles => :seeder do
     require_tag
+
     if !(seeder_files_path = (default_seeder_files_path if default_seeder_files_path != "") || ENV['files_path'])
       puts "You must specify a 'files_path' parameter with the directory on the seeder which contains the files to distribute"
       exit(1)
     end
 
-    if ENV['path_is_file']
-      run "cp \"#{seeder_files_path}\" #{filename}"
-    else
+    if ENV['path_is_directory']
       run "tar -c -z -C #{seeder_files_path}/ -f #{filename} --exclude \".git*\" ."
+    else
+      run "cp \"#{seeder_files_path}\" #{filename}"
     end
 
     tracker = find_servers(:roles => :tracker).first
     tracker_host = tracker.host
-    tracker_port = variables[:tracker_port] || '8998'
+    tracker_port = '8998'
 
     run "python #{remote_murder_path}/murder_make_torrent.py '#{filename}' #{tracker_host}:#{tracker_port} '#{filename}.torrent'"
 
@@ -53,7 +54,7 @@ namespace :murder do
   DESC
   task :start_seeding, :roles => :seeder do
     require_tag
-    run "SCREENRC=/dev/null SYSSCREENRC=/dev/null screen -dms 'seeder-#{tag}' python #{remote_murder_path}/murder_client.py seeder '#{filename}.torrent' '#{filename}' `LC_ALL=C host $HOSTNAME | awk '/has address/ {print $4}' | head -n 1`"
+    run "screen -dmS 'seeder-#{tag}' python #{remote_murder_path}/murder_client.py seeder '#{filename}.torrent' '#{filename}' $(ip r | grep -o -E 'eth0 .+ src [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $7}')"
   end
 
   desc <<-DESC
@@ -75,28 +76,28 @@ namespace :murder do
       exit(1)
     end
 
-    if !ENV['no_tag_directory'] && !ENV['path_is_file']
+    if !ENV['no_tag_directory'] && ENV['path_is_directory']
       destination_path += "/#{tag}"
     end
 
-    if !ENV['path_is_file']
+    if ENV['path_is_directory']
       run "mkdir -p #{destination_path}/"
     end
 
     if ENV['unsafe_please_delete']
       run "rm -rf '#{destination_path}/'*"
     end
-    if !ENV['no_tag_directory'] && !ENV['path_is_file']
+    if !ENV['no_tag_directory'] && ENV['path_is_directory']
       run "find '#{destination_path}/'* >/dev/null 2>&1 && echo \"destination_path #{destination_path} on $HOSTNAME is not empty\" && exit 1 || exit 0"
     end
 
     upload("#{filename}.torrent", "#{filename}.torrent", :via => :scp)
-    run "python #{remote_murder_path}/murder_client.py peer '#{filename}.torrent' '#{filename}' `LC_ALL=C host $CAPISTRANO:HOST$ | awk '/has address/ {print $4}' | head -n 1`"
+    run "python #{remote_murder_path}/murder_client.py peer '#{filename}.torrent' '#{filename}' #{find_servers(:roles => :tracker).first}"
 
-    if ENV['path_is_file']
-      run "cp #{filename} #{destination_path}"
-    else
+    if ENV['path_is_directory']
       run "tar xf #{filename} -C #{destination_path}"
+    else
+      run "mv #{filename} #{destination_path}"
     end
   end
 
@@ -124,7 +125,6 @@ namespace :murder do
     end
 
     set :tag, temp_tag
-    tmp = ENV['temp_path'] || default_temp_path
-    set :filename, "#{tmp}/#{tag}.tgz"
+    set :filename, ENV['temp_file_path'] || "/tmp/#{tag}.tgz"
   end
 end

@@ -253,7 +253,7 @@ class SingleDownload:
         if self.choked:
             return
         shuffle(want)
-        del want[self.backlog - len(self.active_requests):]
+        del want[int(self.backlog) - len(self.active_requests):]
         self.active_requests.extend(want)
         for piece, begin, length in want:
             self.connection.send_request(piece, begin, length)

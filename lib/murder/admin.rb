@@ -20,23 +20,25 @@ namespace :murder do
   DESC
   task :distribute_files, :roles => [:tracker, :seeder, :peer] do
     dist_path = File.expand_path('../../../dist', __FILE__)
+    bt_config_path = "/home/#{user}/.BitTornado/config.downloadheadless.ini"
 
+    run "mkdir -p $(dirname #{bt_config_path})"
+    run "touch #{bt_config_path}"
     run "mkdir -p #{remote_murder_path}/"
     run "[ $(find '#{remote_murder_path}/'* | wc -l ) -lt 1000 ] && rm -rf '#{remote_murder_path}/'* || ( echo 'Cowardly refusing to remove files! Check the remote_murder_path.' ; exit 1 )"
 
     # TODO: Skip hidden (.*) files
-    tmp = ENV['temp_path'] || default_temp_path
-
-    system "tar -c -z -C #{dist_path} -f #{tmp}/murder_dist_to_upload.tgz ."
-    upload("#{tmp}/murder_dist_to_upload.tgz", "#{tmp}/murder_dist.tgz", :via => :sftp)
-    run "tar xf #{tmp}/murder_dist.tgz -C #{remote_murder_path}"
-    run "rm #{tmp}/murder_dist.tgz"
-    system "rm #{tmp}/murder_dist_to_upload.tgz"
+    # TODO: Specifyable tmp file
+    system "tar -c -z -C #{dist_path} -f /tmp/murder_dist.tgz ."
+    upload("/tmp/murder_dist.tgz", "/tmp/murder_dist.tgz", :via => :scp)
+    run "tar xf /tmp/murder_dist.tgz -C #{remote_murder_path}"
+    run "rm /tmp/murder_dist.tgz"
+    system "rm /tmp/murder_dist.tgz"
   end
 
   desc "Starts the Bittorrent tracker (essentially a mini-web-server) listening on port 8998."
   task :start_tracker, :roles => :tracker do
-    run("SCREENRC=/dev/null SYSSCREENRC=/dev/null screen -dms murder_tracker python #{remote_murder_path}/murder_tracker.py && sleep 0.2", :pty => true)
+    run("screen -dmS murder_tracker python #{remote_murder_path}/murder_tracker.py && sleep 0.2", :pty => true)
   end
 
   desc "If the Bittorrent tracker is running, this will kill the process. Note that if it is not running you will receive an error."
