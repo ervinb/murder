@@ -80,7 +80,7 @@ namespace :murder do
       destination_path += "/#{tag}"
     end
 
-    if !ENV['path_is_directory']
+    if ENV['path_is_directory']
       run "mkdir -p #{destination_path}/"
     end
 
@@ -97,7 +97,7 @@ namespace :murder do
     if ENV['path_is_directory']
       run "tar xf #{filename} -C #{destination_path}"
     else
-      run "cp #{filename} #{destination_path}"
+      run "mv #{filename} #{destination_path}"
     end
   end
 
