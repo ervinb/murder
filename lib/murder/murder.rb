@@ -62,7 +62,7 @@ namespace :murder do
   DESC
   task :stop_seeding, :roles => :seeder do
     require_tag
-    run("pkill -f \"SCREEN.*seeder-#{tag}\"")
+    run("pid=$(pgrep -f 'SCREEN.+[s]eeder-#{tag}'); sudo kill -9 $pid")
   end
 
   desc <<-DESC
@@ -103,7 +103,7 @@ namespace :murder do
 
   task :stop_peering, :roles => :peer do
     require_tag
-    run("pkill -f \"murder_client.py peer.*#{filename}\"")
+    run("pid=$(pgrep -f '[m]urder_client.py peer.+#{filename}'); sudo kill -9 $pid")
   end
 
   task :clean_temp_files, :roles => [:peer, :seeder] do
