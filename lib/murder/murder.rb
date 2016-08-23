@@ -27,7 +27,9 @@ namespace :murder do
     end
 
     if ENV['path_is_directory']
-      run "tar -c -z -C #{seeder_files_path}/ -f #{filename} --exclude \".git*\" ."
+      run "tar -cz -C #{seeder_files_path}/ -f #{filename} --exclude \".git*\" ."
+    elsif compress
+      run "if ! [ -e #{filename} ]; then tar --absolute-names -czf #{filename} #{seeder_files_path}; fi"
     else
       run "cp \"#{seeder_files_path}\" #{filename}"
     end
@@ -96,6 +98,8 @@ namespace :murder do
 
     if ENV['path_is_directory']
       run "tar xf #{filename} -C #{destination_path}"
+    elsif compress
+      run "tar --absolute-names -xf #{filename}"
     else
       run "mv #{filename} #{destination_path}"
     end
@@ -124,7 +128,7 @@ namespace :murder do
       exit(1)
     end
 
-    set :tag, temp_tag
-    set :filename, ENV['temp_file_path'] || "/tmp/#{tag}.tgz"
+    set(:tag) { temp_tag }
+    set(:filename) { compress ? "#{ENV['temp_file_path']}.tar.gz" : ENV['temp_file_path'] }
   end
 end

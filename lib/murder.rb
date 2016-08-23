@@ -26,6 +26,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   set :default_seeder_files_path, ''
   set :default_destination_path, ''
   set :default_temp_path, '/tmp'
+  set :compress, false
 
   # default remote dist path in app shared directory
   set(:remote_murder_path) { "#{shared_path}/murder" }
