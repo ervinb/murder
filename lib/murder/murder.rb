@@ -99,10 +99,13 @@ namespace :murder do
     if ENV['path_is_directory']
       run "tar xf #{filename} -C #{destination_path}"
     elsif compress
+      # implicitly has the destination_path
       run "tar --absolute-names -xf #{filename}"
     else
       run "mv #{filename} #{destination_path}"
     end
+
+    store_destination_md5(destination_path) if generate_md5
   end
 
   task :stop_peering, :roles => :peer do
@@ -130,5 +133,13 @@ namespace :murder do
 
     set(:tag) { temp_tag }
     set(:filename) { compress ? "#{ENV['temp_file_path']}.tar.gz" : ENV['temp_file_path'] }
+  end
+
+  def store_destination_md5(file_path)
+    md5_file = "#{file_path}.md5"
+
+    puts "# Generating md5 hash for #{file_path}"
+    run("if ! [ -s #{md5_file} ]; then md5sum #{file_path} | awk '{print $1}' | tee #{md5_file}; fi")
+    puts "# md5 hash saved"
   end
 end
