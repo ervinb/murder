@@ -162,19 +162,19 @@ class HeadlessDisplayer:
            else:
               self.seedStatus = '%d seen recently, plus %.3f distributed copies' % (statistics.numOldSeeds,0.001*int(1000*statistics.numCopies))
            self.peerStatus = '%d seen now, %.1f%% done at %.1f kB/s' % (statistics.numPeers,statistics.percentDone,float(statistics.torrentRate) / (1 << 10))
-        #print '\n\n\n\n'
+        print '\n'
         for err in self.errors:
             print 'ERROR:\n' + err + '\n'
         #print 'saving:        ', self.file
-        #print 'percent done:  ', self.percentDone
-        #print 'time left:     ', self.timeEst
+        print 'percent done:  ', self.percentDone
+        print 'time left:     ', self.timeEst
         #print 'download to:   ', self.downloadTo
-        #print 'download rate: ', self.downRate
-        #print 'upload rate:   ', self.upRate
+        print 'download rate: ', self.downRate
+        print 'upload rate:   ', self.upRate
         #print 'share rating:  ', self.shareRating
         #print 'seed status:   ', self.seedStatus
         #print 'peer status:   ', self.peerStatus
-        #stdout.flush()
+        stdout.flush()
         dpflag.set()
 
     def chooseFile(self, default, size, saveas, dir):
