@@ -29,7 +29,7 @@ namespace :murder do
     if ENV['path_is_directory']
       run "tar -cz -C #{seeder_files_path}/ -f #{filename} --exclude \".git*\" ."
     elsif compress
-      run "if ! [ -e #{filename} ]; then tar --absolute-names -czf #{filename} #{seeder_files_path}; fi"
+      run "if ! [ -e #{filename} ] && [ -e #{seeder_files_path} ]; then tar --checkpoint=10000 --checkpoint-action=echo=\"#%u\" --absolute-names -czf #{filename} #{seeder_files_path}  2>&1; fi"
     else
       run "cp \"#{seeder_files_path}\" #{filename}"
     end
@@ -96,11 +96,22 @@ namespace :murder do
     upload("#{filename}.torrent", "#{filename}.torrent", :via => :scp)
     run "python #{remote_murder_path}/murder_client.py peer '#{filename}.torrent' '#{filename}' #{find_servers(:roles => :tracker).first}"
 
+   # hackety hack
+   # teardown_connections_to(sessions.keys)
+   # # stayin' alive
+   # 6.times do
+   #   sessions.values.each do |session|
+   #     puts "Stayin alive"
+   #     session.send_global_request("keep-alive@openssh.com")
+   #     sleep 10
+   #   end
+   # end
+
     if ENV['path_is_directory']
       run "tar xf #{filename} -C #{destination_path}"
     elsif compress
       # implicitly has the destination_path
-      run "tar --absolute-names -xf #{filename}"
+      run "tar --checkpoint=100000 --checkpoint-action=echo=\"#%u: %dT\" --absolute-names -xf #{filename} 2>&1"
     else
       run "mv #{filename} #{destination_path}"
     end
@@ -109,8 +120,11 @@ namespace :murder do
   end
 
   task :stop_peering, :roles => :peer do
+    terminate_peering_command = %Q(pid=$(pgrep -f '[m]urder_client.py peer.+#{filename}'); if [ -n "$pid" ]; then sudo kill -9 $pid; fi)
+
     require_tag
-    run("pid=$(pgrep -f '[m]urder_client.py peer.+#{filename}'); sudo kill -9 $pid")
+
+    run terminate_peering_command
   end
 
   task :clean_temp_files, :roles => [:peer, :seeder] do
@@ -132,7 +146,7 @@ namespace :murder do
     end
 
     set(:tag) { temp_tag }
-    set(:filename) { compress ? "#{ENV['temp_file_path']}.tar.gz" : ENV['temp_file_path'] }
+    set(:filename) { compress ? "#{ENV['temp_file_path']}.tgz" : ENV['temp_file_path'] }
   end
 
   def store_destination_md5(file_path)
