@@ -11,7 +11,7 @@ except:
     True = 1
     False = 0
 
-EXPIRE_TIME = 60 * 60
+EXPIRE_TIME = 30
 
 class PerIPStats: 	 
     def __init__(self, ip):

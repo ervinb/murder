@@ -97,7 +97,7 @@ class HeadlessDisplayer:
         self.percentDone = '100'
         self.timeEst = 'Download Succeeded!'
         self.downRate = ''
-        #self.display()
+        self.display()
 
         global isPeer
 
@@ -171,9 +171,9 @@ class HeadlessDisplayer:
         #print 'download to:   ', self.downloadTo
         print 'download rate: ', self.downRate
         print 'upload rate:   ', self.upRate
-        #print 'share rating:  ', self.shareRating
-        #print 'seed status:   ', self.seedStatus
-        #print 'peer status:   ', self.peerStatus
+        print 'share rating:  ', self.shareRating
+        print 'seed status:   ', self.seedStatus
+        print 'peer status:   ', self.peerStatus
         stdout.flush()
         dpflag.set()
 
@@ -247,22 +247,28 @@ def run(params):
                         config, response, infohash, myid, rawserver, listen_port,
                         configdir)
 
+        print "+++ Download instanciated"
         if not dow.saveAs(h.chooseFile, h.newpath):
             break
-
+        print "+++ dow.saveAs ok"
         if not dow.initFiles(old_style = True):
             break
+        print "+++ dow.initFiles ok"
         if not dow.startEngine():
             dow.shutdown()
             break
+        print "+++ dow.startEngine ok"
         dow.startRerequester()
+        print "+++ dow.startRerequester ok"
         dow.autoStats()
+        print "+++ dow.autoStats ok"
 
         if not dow.am_I_finished():
             h.display(activity = 'connecting to peers')
         rawserver.listen_forever(dow.getPortHandler())
         h.display(activity = 'shutting down')
         dow.shutdown()
+        print "+++ dow.shutdown ok > break"
         break
     try:
         rawserver.shutdown()
